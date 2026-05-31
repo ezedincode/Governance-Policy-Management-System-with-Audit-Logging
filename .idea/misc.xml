@@ -5,6 +5,7 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/Governance-Policy-Management-System-with-Audit-Logging/pom.xml" />
+        <option value="$PROJECT_DIR$/Governance_Service/pom.xml" />
       </list>
     </option>
   </component>
