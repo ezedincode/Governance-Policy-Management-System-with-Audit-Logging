@@ -5,7 +5,9 @@ import com.ezedin.Governance_Service.dto.PolicyResponse;
 import com.ezedin.Governance_Service.entity.Policy;
 import com.ezedin.Governance_Service.entity.PolicyStatus;
 import com.ezedin.Governance_Service.repository.PolicyRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.swing.text.html.Option;
@@ -42,6 +44,22 @@ public class policyService {
         return response.map(this::toPolicyResponse).orElse(null);
     }
 
+    @Transactional
+    public PolicyResponse submitForApproval(int policyId) {
+
+        Policy policy = policyRepository.findById(policyId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Policy not found with id: " + policyId));
+
+        if (policy.getStatus() != PolicyStatus.DRAFT) {
+            throw new IllegalStateException(
+                    "Only DRAFT policies can be submitted for approval");
+        }
+
+        policy.setStatus(PolicyStatus.PENDING_APPROVAL);
+
+        return toPolicyResponse(policyRepository.save(policy));
+    }
     public PolicyResponse toPolicyResponse(Policy policy) {
         return PolicyResponse.builder()
                .title(policy.getTitle())
@@ -50,5 +68,32 @@ public class policyService {
                .createdAt(policy.getCreatedAt())
                .createdBy(policy.getCreatedBy())
                .build();
+    }
+
+    @Transactional
+    public PolicyResponse approvePolicy(int policyId) {
+        Policy policy = policyRepository.findById(policyId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "policy not found with id: " + policyId));
+        if (policy.getStatus() != PolicyStatus.PENDING_APPROVAL) {
+            throw new IllegalStateException(
+                    "only policies in PENDING_APPROVAL status can be approved");
+        }
+        policy.setStatus(PolicyStatus.APPROVED);
+        Policy savedPolicy = policyRepository.save(policy);
+        return toPolicyResponse(savedPolicy);
+    }
+    @Transactional
+    public PolicyResponse rejectPolicy(int policyId) {
+        Policy policy = policyRepository.findById(policyId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "policy not found with id: " + policyId));
+        if (policy.getStatus() != PolicyStatus.PENDING_APPROVAL) {
+            throw new IllegalStateException(
+                    "only policies in PENDING_APPROVAL status can be rejected");
+        }
+        policy.setStatus(PolicyStatus.REJECTED);
+        Policy savedPolicy = policyRepository.save(policy);
+        return toPolicyResponse(savedPolicy);
     }
 }
