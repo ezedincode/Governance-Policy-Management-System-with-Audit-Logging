@@ -4,6 +4,8 @@ import com.ezedin.Governance_Service.dto.CreatePolicyRequest;
 import com.ezedin.Governance_Service.dto.PolicyResponse;
 import com.ezedin.Governance_Service.entity.Policy;
 import com.ezedin.Governance_Service.entity.PolicyStatus;
+import com.ezedin.Governance_Service.event.EventType;
+import com.ezedin.Governance_Service.event.GovernanceEventProducer;
 import com.ezedin.Governance_Service.repository.PolicyRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 public class policyService {
 
     private final PolicyRepository policyRepository;
+    private final GovernanceEventProducer eventProducer;
 
     public Policy createPolicy(CreatePolicyRequest request) {
         Policy policy = Policy.builder()
@@ -30,7 +33,9 @@ public class policyService {
                 .createdAt(LocalDateTime.now())
                 .createdBy(request.getCreatedBy())
                 .build();
-        return policyRepository.save(policy);
+                policyRepository.save(policy);
+                eventProducer.publish(EventType.policy_created, policy.getId(), policy.getCreatedBy());
+                return policy;
     }
     public List<PolicyResponse> getAllPolicies() {
         List<Policy> policyResponseList = policyRepository.findAll();
@@ -58,7 +63,9 @@ public class policyService {
 
         policy.setStatus(PolicyStatus.PENDING_APPROVAL);
 
-        return toPolicyResponse(policyRepository.save(policy));
+        PolicyResponse response = toPolicyResponse(policyRepository.save(policy));
+        eventProducer.publish(EventType.policy_submitted, policy.getId(), policy.getCreatedBy());
+        return response;
     }
     public PolicyResponse toPolicyResponse(Policy policy) {
         return PolicyResponse.builder()
@@ -81,7 +88,9 @@ public class policyService {
         }
         policy.setStatus(PolicyStatus.APPROVED);
         Policy savedPolicy = policyRepository.save(policy);
-        return toPolicyResponse(savedPolicy);
+        PolicyResponse response = toPolicyResponse(savedPolicy);
+        eventProducer.publish(EventType.policy_approved, policy.getId(), policy.getCreatedBy());
+        return response;
     }
     @Transactional
     public PolicyResponse rejectPolicy(int policyId) {
@@ -94,6 +103,7 @@ public class policyService {
         }
         policy.setStatus(PolicyStatus.REJECTED);
         Policy savedPolicy = policyRepository.save(policy);
+        eventProducer.publish(EventType.policy_rejected, policy.getId(), policy.getCreatedBy());
         return toPolicyResponse(savedPolicy);
     }
 }
