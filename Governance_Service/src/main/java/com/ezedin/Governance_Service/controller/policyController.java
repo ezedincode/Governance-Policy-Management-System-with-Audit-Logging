@@ -3,7 +3,7 @@ package com.ezedin.Governance_Service.controller;
 import com.ezedin.Governance_Service.dto.CreatePolicyRequest;
 import com.ezedin.Governance_Service.dto.PolicyResponse;
 import com.ezedin.Governance_Service.entity.Policy;
-import com.ezedin.Governance_Service.service.policyService;
+import com.ezedin.Governance_Service.service.PolicyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class policyController {
-    private final policyService policyService;
+    private final PolicyService policyService;
 
     @PostMapping("/policy")
     public ResponseEntity<Policy> createPolicy(

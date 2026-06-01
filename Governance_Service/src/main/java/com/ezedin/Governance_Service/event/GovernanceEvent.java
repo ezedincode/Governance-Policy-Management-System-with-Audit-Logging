@@ -13,6 +13,6 @@ public class GovernanceEvent {
     private EventType eventType;
     private Long policyId;
     private String actor;
-    private LocalDateTime timestamp;
+    private String timestamp;
 
 }
