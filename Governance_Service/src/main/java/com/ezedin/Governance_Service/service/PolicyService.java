@@ -32,8 +32,8 @@ public class PolicyService {
                 .createdAt(LocalDateTime.now())
                 .createdBy(request.getCreatedBy())
                 .build();
-                policyRepository.save(policy);
-                eventProducer.publish(EventType.policy_created, policy.getId(), policy.getCreatedBy());
+                Policy savedPolicy = policyRepository.save(policy);
+                eventProducer.publish(EventType.policy_created, savedPolicy.getId(), policy.getCreatedBy());
                 return policy;
     }
     public List<PolicyResponse> getAllPolicies() {
@@ -61,9 +61,9 @@ public class PolicyService {
         }
 
         policy.setStatus(PolicyStatus.PENDING_APPROVAL);
-
-        PolicyResponse response = toPolicyResponse(policyRepository.save(policy));
-        eventProducer.publish(EventType.policy_submitted, policy.getId(), policy.getCreatedBy());
+        Policy savedPolicy = policyRepository.save(policy);
+        PolicyResponse response = toPolicyResponse(savedPolicy);
+        eventProducer.publish(EventType.policy_submitted, savedPolicy.getId(), savedPolicy.getCreatedBy());
         return response;
     }
     public PolicyResponse toPolicyResponse(Policy policy) {
@@ -88,7 +88,7 @@ public class PolicyService {
         policy.setStatus(PolicyStatus.APPROVED);
         Policy savedPolicy = policyRepository.save(policy);
         PolicyResponse response = toPolicyResponse(savedPolicy);
-        eventProducer.publish(EventType.policy_approved, policy.getId(), policy.getCreatedBy());
+        eventProducer.publish(EventType.policy_approved, savedPolicy.getId(), savedPolicy.getCreatedBy());
         return response;
     }
     @Transactional
@@ -102,7 +102,7 @@ public class PolicyService {
         }
         policy.setStatus(PolicyStatus.REJECTED);
         Policy savedPolicy = policyRepository.save(policy);
-        eventProducer.publish(EventType.policy_rejected, policy.getId(), policy.getCreatedBy());
+        eventProducer.publish(EventType.policy_rejected, savedPolicy.getId(), savedPolicy.getCreatedBy());
         return toPolicyResponse(savedPolicy);
     }
 }
