@@ -14,10 +14,10 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class policyController {
+public class PolicyController {
     private final PolicyService policyService;
 
-    @PostMapping("/policy")
+    @PostMapping("/policies")
     public ResponseEntity<Policy> createPolicy(
              @Valid @RequestBody CreatePolicyRequest request) {
 
@@ -32,12 +32,12 @@ public class policyController {
     }
 
     @GetMapping("/policies/{id}")
-    public ResponseEntity<PolicyResponse> getPolicyById(@PathVariable int id) {
+    public ResponseEntity<PolicyResponse> getPolicyById(@PathVariable Long id) {
         return ResponseEntity.ok(policyService.getPolicyById(id));
     }
 
     @PostMapping("/policies/{id}/submit")
-    public ResponseEntity<?> submitForApproval(@PathVariable int id) {
+    public ResponseEntity<?> submitForApproval(@PathVariable Long id) {
 
         try {
             PolicyResponse response = policyService.submitForApproval(id);
@@ -49,7 +49,7 @@ public class policyController {
     }
     @PostMapping("/policies/{id}/approve")
     public ResponseEntity<?> approvePolicy(
-            @PathVariable int id) {
+            @PathVariable Long id) {
     try{
         PolicyResponse response = policyService.approvePolicy(id);
         return ResponseEntity.ok(response);
@@ -60,7 +60,7 @@ public class policyController {
     }
     @PostMapping("/policies/{id}/reject")
     public ResponseEntity<?> rejectPolicy(
-            @PathVariable int id) {
+            @PathVariable Long id) {
         try{
             PolicyResponse response = policyService.rejectPolicy(id);
             return ResponseEntity.ok(response);

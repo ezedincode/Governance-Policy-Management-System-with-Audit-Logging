@@ -64,14 +64,14 @@ class PolicyServiceTest {
        policy.setId(1L);
        policy.setStatus(PolicyStatus.DRAFT);
 
-       when(policyRepository.findById(1))
+       when(policyRepository.findById(1L))
                .thenReturn(Optional.of(policy));
 
-       PolicyResponse response = policyService.getPolicyById(1);
+       PolicyResponse response = policyService.getPolicyById(1L);
 
        assertNotNull(response);
 
-       verify(policyRepository).findById(1);
+       verify(policyRepository).findById(1L);
    }
 
     //for getting all policies
@@ -103,16 +103,16 @@ class PolicyServiceTest {
         policy.setId(1L);
         policy.setCreatedBy("admin");
         policy.setStatus(PolicyStatus.DRAFT);
-        when(policyRepository.findById(1))
+        when(policyRepository.findById(1L))
                 .thenReturn(Optional.of(policy));
         when(policyRepository.save(any(Policy.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        PolicyResponse response = policyService.submitForApproval(1);
+        PolicyResponse response = policyService.submitForApproval(1L);
         assertNotNull(response);
         assertEquals(
                 PolicyStatus.PENDING_APPROVAL,
                 policy.getStatus());
-        verify(policyRepository).findById(1);
+        verify(policyRepository).findById(1L);
         verify(policyRepository).save(any(Policy.class));
         verify(governanceEventProducer).publish(
                 EventType.policy_submitted,
@@ -122,13 +122,13 @@ class PolicyServiceTest {
     }
     @Test
     void shouldThrowWhenPolicyNotFound() {
-        when(policyRepository.findById(1))
+        when(policyRepository.findById(1L))
                 .thenReturn(Optional.empty());
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> policyService.submitForApproval(1)
+                () -> policyService.submitForApproval(1L)
         );
-        verify(policyRepository).findById(1);
+        verify(policyRepository).findById(1L);
         verify(policyRepository, never()).save(any());
         verify(governanceEventProducer, never()).publish(any(), anyLong(), any());
     }
@@ -138,13 +138,13 @@ class PolicyServiceTest {
         policy.setId(1L);
         policy.setCreatedBy("admin");
         policy.setStatus(PolicyStatus.APPROVED);
-        when(policyRepository.findById(1))
+        when(policyRepository.findById(1L))
                 .thenReturn(Optional.of(policy));
         assertThrows(
                 IllegalStateException.class,
-                () -> policyService.submitForApproval(1)
+                () -> policyService.submitForApproval(1L)
         );
-        verify(policyRepository).findById(1);
+        verify(policyRepository).findById(1L);
         verify(policyRepository, never()).save(any());
         verify(governanceEventProducer, never()).publish(any(), anyLong(), any());
     }
@@ -157,17 +157,17 @@ class PolicyServiceTest {
         policy.setId(1L);
         policy.setCreatedBy("admin");
         policy.setStatus(PolicyStatus.PENDING_APPROVAL);
-        when(policyRepository.findById(1))
+        when(policyRepository.findById(1L))
                 .thenReturn(Optional.of(policy));
         when(policyRepository.save(any(Policy.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        PolicyResponse response = policyService.approvePolicy(1);
+        PolicyResponse response = policyService.approvePolicy(1L);
         assertNotNull(response);
         assertEquals(
                 PolicyStatus.APPROVED,
                 policy.getStatus()
         );
-        verify(policyRepository).findById(1);
+        verify(policyRepository).findById(1L);
         verify(policyRepository).save(any(Policy.class));
         verify(governanceEventProducer).publish(
                 EventType.policy_approved,
@@ -177,15 +177,15 @@ class PolicyServiceTest {
     }
     @Test
     void shouldThrowWhenPolicyNotFoundOnApprove() {
-        when(policyRepository.findById(1))
+        when(policyRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> policyService.approvePolicy(1)
+                () -> policyService.approvePolicy(1L)
         );
 
-        verify(policyRepository).findById(1);
+        verify(policyRepository).findById(1L);
 
         verify(policyRepository, never()).save(any());
 
@@ -196,11 +196,11 @@ class PolicyServiceTest {
         Policy policy = new Policy();
         policy.setId(1L);
         policy.setStatus(PolicyStatus.DRAFT);
-        when(policyRepository.findById(1))
+        when(policyRepository.findById(1L))
                 .thenReturn(Optional.of(policy));
         assertThrows(
                 IllegalStateException.class,
-                () -> policyService.approvePolicy(1)
+                () -> policyService.approvePolicy(1L)
         );
         verify(policyRepository, never()).save(any());
         verify(governanceEventProducer, never()).publish(any(), anyLong(), any());
@@ -212,17 +212,17 @@ class PolicyServiceTest {
         policy.setId(1L);
         policy.setCreatedBy("admin");
         policy.setStatus(PolicyStatus.PENDING_APPROVAL);
-        when(policyRepository.findById(1))
+        when(policyRepository.findById(1L))
                 .thenReturn(Optional.of(policy));
         when(policyRepository.save(any(Policy.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        PolicyResponse response = policyService.rejectPolicy(1);
+        PolicyResponse response = policyService.rejectPolicy(1L);
         assertNotNull(response);
         assertEquals(
                 PolicyStatus.REJECTED,
                 policy.getStatus()
         );
-        verify(policyRepository).findById(1);
+        verify(policyRepository).findById(1L);
         verify(policyRepository).save(any(Policy.class));
         verify(governanceEventProducer).publish(
                 EventType.policy_rejected,
@@ -233,15 +233,15 @@ class PolicyServiceTest {
     @Test
     void shouldThrowWhenPolicyNotFoundOnReject() {
 
-        when(policyRepository.findById(1))
+        when(policyRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> policyService.rejectPolicy(1)
+                () -> policyService.rejectPolicy(1L)
         );
 
-        verify(policyRepository).findById(1);
+        verify(policyRepository).findById(1L);
 
         verify(policyRepository, never()).save(any());
 
@@ -253,13 +253,13 @@ class PolicyServiceTest {
         Policy policy = new Policy();
         policy.setId(1L);
         policy.setStatus(PolicyStatus.DRAFT);
-        when(policyRepository.findById(1))
+        when(policyRepository.findById(1L))
                 .thenReturn(Optional.of(policy));
         assertThrows(
                 IllegalStateException.class,
-                () -> policyService.rejectPolicy(1)
+                () -> policyService.rejectPolicy(1L)
         );
-        verify(policyRepository).findById(1);
+        verify(policyRepository).findById(1L);
         verify(policyRepository, never()).save(any());
         verify(governanceEventProducer, never()).publish(any(), anyLong(), any());
     }

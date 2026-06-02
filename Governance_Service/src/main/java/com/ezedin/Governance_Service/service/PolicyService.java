@@ -34,7 +34,7 @@ public class PolicyService {
                 .build();
                 Policy savedPolicy = policyRepository.save(policy);
                 eventProducer.publish(EventType.policy_created, savedPolicy.getId(), policy.getCreatedBy());
-                return policy;
+                return savedPolicy;
     }
     public List<PolicyResponse> getAllPolicies() {
         List<Policy> policyResponseList = policyRepository.findAll();
@@ -43,13 +43,13 @@ public class PolicyService {
                 .collect(Collectors.toList());
     }
 
-    public PolicyResponse getPolicyById(Integer id) {
+    public PolicyResponse getPolicyById(Long id) {
         Optional<Policy> response = policyRepository.findById(id);
         return response.map(this::toPolicyResponse).orElse(null);
     }
 
     @Transactional
-    public PolicyResponse submitForApproval(int policyId) {
+    public PolicyResponse submitForApproval(Long policyId) {
 
         Policy policy = policyRepository.findById(policyId)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -68,6 +68,7 @@ public class PolicyService {
     }
     public PolicyResponse toPolicyResponse(Policy policy) {
         return PolicyResponse.builder()
+                .Id(policy.getId())
                .title(policy.getTitle())
                .description(policy.getDescription())
                .status(policy.getStatus())
@@ -77,7 +78,7 @@ public class PolicyService {
     }
 
     @Transactional
-    public PolicyResponse approvePolicy(int policyId) {
+    public PolicyResponse approvePolicy(Long policyId) {
         Policy policy = policyRepository.findById(policyId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "policy not found with id: " + policyId));
@@ -92,7 +93,7 @@ public class PolicyService {
         return response;
     }
     @Transactional
-    public PolicyResponse rejectPolicy(int policyId) {
+    public PolicyResponse rejectPolicy(Long policyId) {
         Policy policy = policyRepository.findById(policyId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "policy not found with id: " + policyId));

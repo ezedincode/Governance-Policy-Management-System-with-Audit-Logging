@@ -2,7 +2,7 @@ package com.ezedin.Audit_Service.service;
 
 import com.ezedin.Audit_Service.dto.GovernanceEvent;
 import com.ezedin.Audit_Service.entity.AuditLog;
-import com.ezedin.Audit_Service.repository.auditRepository;
+import com.ezedin.Audit_Service.repository.AuditRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class AuditConsumerService {
-    private final auditRepository auditLogRepository;
+    private final AuditRepository auditLogRepository;
 
     @KafkaListener(topics = "governance-events")
     public void consume(GovernanceEvent event) {

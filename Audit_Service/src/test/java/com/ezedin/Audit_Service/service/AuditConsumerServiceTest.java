@@ -3,7 +3,7 @@ package com.ezedin.Audit_Service.service;
 import com.ezedin.Audit_Service.dto.GovernanceEvent;
 import com.ezedin.Audit_Service.entity.AuditLog;
 import com.ezedin.Audit_Service.entity.EventType;
-import com.ezedin.Audit_Service.repository.auditRepository;
+import com.ezedin.Audit_Service.repository.AuditRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 class AuditConsumerServiceTest {
 
     @Mock
-    private auditRepository auditLogRepository;
+    private AuditRepository auditLogRepository;
 
     @InjectMocks
     private AuditConsumerService auditConsumerService;
