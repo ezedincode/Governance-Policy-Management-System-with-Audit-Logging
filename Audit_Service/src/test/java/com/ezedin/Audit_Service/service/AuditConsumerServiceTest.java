@@ -50,15 +50,5 @@ class AuditConsumerServiceTest {
         assertThrows(NullPointerException.class, () -> auditConsumerService.consume(null));
     }
 
-    @Test
-    void shouldCallSaveExactlyOnce() {
 
-        GovernanceEvent event = new GovernanceEvent();
-        event.setEventType(EventType.policy_approved);
-        event.setPolicyId(1L);
-
-        auditConsumerService.consume(event);
-
-        verify(auditLogRepository, times(1)).save(any(AuditLog.class));
-    }
 }

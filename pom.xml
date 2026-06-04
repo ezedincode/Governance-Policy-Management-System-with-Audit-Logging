@@ -38,6 +38,8 @@
     <modules>
         <module>Audit_Service</module>
         <module>Governance_Service</module>
+        <module>User_Service</module>
+        <module>Auth_Service</module>
     </modules>
 
 </project>
