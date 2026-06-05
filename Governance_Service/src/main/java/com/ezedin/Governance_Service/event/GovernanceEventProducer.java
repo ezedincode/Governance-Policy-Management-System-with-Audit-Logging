@@ -1,16 +1,18 @@
 package com.ezedin.Governance_Service.event;
 
+import com.ezedin.Governance_Service.entity.Policy;
+import com.ezedin.Governance_Service.repository.outBoxEventRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.kafka.support.SendResult;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
-import java.util.concurrent.CompletableFuture;
-
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,19 +20,35 @@ public class GovernanceEventProducer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GovernanceEventProducer.class);
 
+    private final ObjectMapper objectMapper;
+    private final KafkaTemplate<String, GovernanceEvent> kafkaTemplate;
+    private final outBoxEventRepository outboxEventRepository;
+
     @Value("${kafka.topic.governance-events}")
     private String topic;
 
-    private final KafkaTemplate<String, GovernanceEvent> kafkaTemplate;
+    @Scheduled(fixedDelay = 3000)
+    @Transactional
+    public void publish() {
+        List<OutboxEvent> events = outboxEventRepository.findByProcessedFalse();
 
-    public void publish(EventType eventType, Long policyId, String actor) {
+        for (OutboxEvent event : events) {
+            try {
+                Policy policy = objectMapper.readValue(event.getPayload(), Policy.class);
 
-        GovernanceEvent event = new GovernanceEvent();
-        event.setEventType(eventType);
-        event.setPolicyId(policyId);
-        event.setActor(actor);
-        event.setTimestamp(LocalDateTime.now().toString());
-        kafkaTemplate.send(topic, policyId.toString(), event);
+                GovernanceEvent governanceEvent = new GovernanceEvent();
+                governanceEvent.setEventType(EventType.valueOf(event.getEventType()));
+                governanceEvent.setPolicyId(Long.parseLong(event.getAggregateId()));
+                governanceEvent.setActor(policy.getCreatedBy());
+                governanceEvent.setTimestamp(event.getCreatedAt().toString());
 
+                kafkaTemplate.send(topic, event.getAggregateId(), governanceEvent);
+
+                event.setProcessed(true);
+                outboxEventRepository.save(event);
+            } catch (Exception e) {
+                LOGGER.error("Failed to publish outbox event id={}", event.getId(), e);
+            }
+        }
     }
 }
