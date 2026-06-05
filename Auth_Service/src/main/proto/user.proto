@@ -21,9 +21,9 @@ message CreateUserGrpcRequest{
   Role role = 4;
 }
 enum Role {
-    ADMIN = 0;
-    USER = 1;
-    AUDITOR = 2;
+  ADMIN = 0;
+  USER = 1;
+  AUDITOR = 2;
 }
 
 message UserGrpcResponse {

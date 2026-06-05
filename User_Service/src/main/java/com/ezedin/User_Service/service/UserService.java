@@ -22,8 +22,20 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    public UserResponse getUserById(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+        return toUserResponse(user);
+    }
+
+    public UserResponse getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
+        return toUserResponse(user);
+    }
+
     @Transactional
-    public UserResponse createUser(@Valid CreateUserRequest request) {
+    public com.ezedin.User_Service.dto.UserResponse createUser(@Valid CreateUserRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new DuplicateUsernameException("Username already exists: " + request.getUsername());
         }
@@ -40,18 +52,6 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
         return toUserResponse(savedUser);
-    }
-
-    public UserResponse getUserById(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
-        return toUserResponse(user);
-    }
-
-    public UserResponse getUserByUsername(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
-        return toUserResponse(user);
     }
 
     private UserResponse toUserResponse(User user) {
