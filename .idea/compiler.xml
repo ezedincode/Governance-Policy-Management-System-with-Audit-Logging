@@ -7,6 +7,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="Discovery_Service" />
       </profile>
       <profile name="Annotation profile for parent" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -14,17 +15,9 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath>
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
         <module name="Audit_Service" />
-      </profile>
-      <profile name="Annotation profile for Auth_Service" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath>
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
-        </processorPath>
+        <module name="Governance_Service" />
         <module name="Auth_Service" />
       </profile>
       <profile name="Annotation profile for User_Service" enabled="true">
@@ -36,15 +29,6 @@
         </processorPath>
         <module name="User_Service" />
       </profile>
-      <profile name="Annotation profile for Governance_Service" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath>
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
-        </processorPath>
-        <module name="Governance_Service" />
-      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="Governance-Policy-Management-System-with-Audit-Logging" target="21" />
@@ -54,6 +38,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Audit_Service" options="-parameters" />
       <module name="Auth_Service" options="-parameters" />
+      <module name="Discovery_Service" options="-parameters" />
       <module name="Governance-Policy-Management-System-with-Audit-Logging" options="-parameters" />
       <module name="Governance_Service" options="-parameters" />
       <module name="User_Service" options="-parameters" />
