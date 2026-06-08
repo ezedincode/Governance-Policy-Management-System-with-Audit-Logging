@@ -1,0 +1,16 @@
+{
+  "properties": [
+    {
+      "name": "spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key",
+      "type": "java.lang.Boolean",
+      "description": "Whether to deny requests when the KeyResolver returns an empty key.",
+      "defaultValue": true
+    },
+    {
+      "name": "spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code",
+      "type": "java.lang.String",
+      "description": "The status code to return when the KeyResolver returns an empty key and deny-empty-key is true.",
+      "defaultValue": "FORBIDDEN"
+    }
+  ]
+}

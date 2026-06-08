@@ -9,6 +9,18 @@ services:
     ports:
       - "8761:8761"
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   gateway-service:
     build:
       context: .
@@ -20,8 +32,12 @@ services:
     depends_on:
       discovery-service:
         condition: service_started
+      redis:
+        condition: service_healthy
     environment:
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
 
   postgres-db:
     image: postgres:16-alpine

@@ -1,1 +1,2 @@
 com\ezedin\Gateway_Service\GatewayServiceApplication.class
+com\ezedin\Gateway_Service\config\RateLimiterConfig.class
