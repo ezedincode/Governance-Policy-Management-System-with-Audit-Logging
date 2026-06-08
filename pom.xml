@@ -45,6 +45,7 @@
 
     <modules>
         <module>Discovery_Service</module>
+        <module>Gateway_Service</module>
         <module>Audit_Service</module>
         <module>Governance_Service</module>
         <module>User_Service</module>

@@ -29,7 +29,7 @@ public class AuthService {
     public LoginResponse login(@Valid LoginRequest request) {
         UserInfo user = getUserByUsername(request.getUsername());
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (!passwordsMatch(request.getPassword(), user.getPassword())) {
             throw new InvalidCredentialsException("Invalid username or password");
         }
 
@@ -43,9 +43,14 @@ public class AuthService {
                 .build();
     }
     public CreateUserResponse register(@Valid CreateUserRequest request) {
+        CreateUserRequest requestWithHashedPassword = new CreateUserRequest(
+                request.getUsername(),
+                request.getEmail(),
+                passwordEncoder.encode(request.getPassword()),
+                request.getRole()
+        );
 
-        CreateUserResponse user = userGrpcClient.createUser(request);
-
+        CreateUserResponse user = userGrpcClient.createUser(requestWithHashedPassword);
 
         return CreateUserResponse.builder()
                 .username(user.getUsername())
@@ -55,19 +60,28 @@ public class AuthService {
     }
 
     private UserInfo getUserByUsername(String username) {
-        try{
+        try {
             UserGrpcResponse user = userGrpcClient.findByUsername(username);
-            UUID userID = UUID.fromString(user.getId());
             return UserInfo.builder()
-                    .id(userID)
+                    .id(UUID.fromString(user.getId()))
                     .username(user.getUsername())
                     .role(user.getRole())
                     .password(user.getPassword())
                     .build();
-        }catch (StatusRuntimeException e) {
-            throw new RuntimeException("User not found");
+        } catch (StatusRuntimeException e) {
+            throw new InvalidCredentialsException("Invalid username or password");
         }
+    }
 
+    private boolean passwordsMatch(String rawPassword, String encodedPassword) {
+        if (encodedPassword == null || encodedPassword.isBlank()) {
+            return false;
+        }
+        try {
+            return passwordEncoder.matches(rawPassword, encodedPassword);
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
     }
 
 }

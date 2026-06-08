@@ -9,6 +9,20 @@ services:
     ports:
       - "8761:8761"
 
+  gateway-service:
+    build:
+      context: .
+      dockerfile: Gateway_Service/Dockerfile
+    container_name: gateway-service
+    restart: unless-stopped
+    ports:
+      - "8088:8088"
+    depends_on:
+      discovery-service:
+        condition: service_started
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+
   postgres-db:
     image: postgres:16-alpine
     container_name: postgres-db
