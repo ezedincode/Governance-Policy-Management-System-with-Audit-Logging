@@ -6,9 +6,10 @@ import com.ezedin.Governance_Service.entity.Policy;
 import com.ezedin.Governance_Service.entity.PolicyStatus;
 import com.ezedin.Governance_Service.event.EventType;
 import com.ezedin.Governance_Service.event.OutboxEvent;
+import com.ezedin.Governance_Service.exception.InvalidPolicyStateException;
+import com.ezedin.Governance_Service.exception.PolicyNotFoundException;
 import com.ezedin.Governance_Service.repository.PolicyRepository;
 import com.ezedin.Governance_Service.repository.outBoxEventRepository;
-import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -139,7 +140,7 @@ class PolicyServiceTest {
         when(policyRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(
-                ResourceNotFoundException.class,
+                PolicyNotFoundException.class,
                 () -> policyService.submitForApproval(1L)
         );
 
@@ -158,7 +159,7 @@ class PolicyServiceTest {
         when(policyRepository.findById(1L)).thenReturn(Optional.of(policy));
 
         assertThrows(
-                IllegalStateException.class,
+                InvalidPolicyStateException.class,
                 () -> policyService.submitForApproval(1L)
         );
 
@@ -198,7 +199,7 @@ class PolicyServiceTest {
         when(policyRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(
-                ResourceNotFoundException.class,
+                PolicyNotFoundException.class,
                 () -> policyService.approvePolicy(1L)
         );
 
@@ -216,7 +217,7 @@ class PolicyServiceTest {
         when(policyRepository.findById(1L)).thenReturn(Optional.of(policy));
 
         assertThrows(
-                IllegalStateException.class,
+                InvalidPolicyStateException.class,
                 () -> policyService.approvePolicy(1L)
         );
 
@@ -255,7 +256,7 @@ class PolicyServiceTest {
         when(policyRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(
-                ResourceNotFoundException.class,
+                PolicyNotFoundException.class,
                 () -> policyService.rejectPolicy(1L)
         );
 
@@ -273,7 +274,7 @@ class PolicyServiceTest {
         when(policyRepository.findById(1L)).thenReturn(Optional.of(policy));
 
         assertThrows(
-                IllegalStateException.class,
+                InvalidPolicyStateException.class,
                 () -> policyService.rejectPolicy(1L)
         );
 

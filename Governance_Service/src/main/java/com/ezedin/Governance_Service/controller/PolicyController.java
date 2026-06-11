@@ -37,36 +37,20 @@ public class PolicyController {
     }
 
     @PostMapping("/policies/{id}/submit")
-    public ResponseEntity<?> submitForApproval(@PathVariable Long id) {
-
-        try {
-            PolicyResponse response = policyService.submitForApproval(id);
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<PolicyResponse> submitForApproval(@PathVariable Long id) {
+        PolicyResponse response = policyService.submitForApproval(id);
+        return ResponseEntity.ok(response);
     }
+
     @PostMapping("/policies/{id}/approve")
-    public ResponseEntity<?> approvePolicy(
-            @PathVariable Long id) {
-    try{
+    public ResponseEntity<PolicyResponse> approvePolicy(@PathVariable Long id) {
         PolicyResponse response = policyService.approvePolicy(id);
         return ResponseEntity.ok(response);
-        }catch (Exception e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
     }
 
-    }
     @PostMapping("/policies/{id}/reject")
-    public ResponseEntity<?> rejectPolicy(
-            @PathVariable Long id) {
-        try{
-            PolicyResponse response = policyService.rejectPolicy(id);
-            return ResponseEntity.ok(response);
-        }catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-
+    public ResponseEntity<PolicyResponse> rejectPolicy(@PathVariable Long id) {
+        PolicyResponse response = policyService.rejectPolicy(id);
+        return ResponseEntity.ok(response);
     }
 }

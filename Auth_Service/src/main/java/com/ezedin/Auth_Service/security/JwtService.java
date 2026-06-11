@@ -2,6 +2,7 @@ package com.ezedin.Auth_Service.security;
 
 import com.ezedin.Auth_Service.config.JwtProperties;
 import com.ezedin.Auth_Service.dto.UserInfo;
+import com.ezedin.Auth_Service.exception.JwtException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -49,7 +50,7 @@ public class JwtService {
             return claims.getSubject() != null
                     && !claims.getSubject().isBlank()
                     && claims.getExpiration().after(new Date());
-        } catch (Exception ex) {
+        } catch (io.jsonwebtoken.JwtException ex) {
             return false;
         }
     }
@@ -74,7 +75,7 @@ public class JwtService {
         try {
             return MessageDigest.getInstance("SHA-256").digest(input);
         } catch (NoSuchAlgorithmException ex) {
-            throw new IllegalStateException("SHA-256 algorithm not available", ex);
+            throw new JwtException("SHA-256 algorithm not available", ex);
         }
     }
 }

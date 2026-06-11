@@ -6,17 +6,18 @@ import com.ezedin.Governance_Service.entity.Policy;
 import com.ezedin.Governance_Service.entity.PolicyStatus;
 import com.ezedin.Governance_Service.event.EventType;
 import com.ezedin.Governance_Service.event.OutboxEvent;
+import com.ezedin.Governance_Service.exception.InvalidPolicyStateException;
+import com.ezedin.Governance_Service.exception.OutboxSerializationException;
+import com.ezedin.Governance_Service.exception.PolicyNotFoundException;
 import com.ezedin.Governance_Service.repository.PolicyRepository;
 import com.ezedin.Governance_Service.repository.outBoxEventRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,18 +50,19 @@ public class PolicyService {
     }
 
     public PolicyResponse getPolicyById(Long id) {
-        Optional<Policy> response = policyRepository.findById(id);
-        return response.map(this::toPolicyResponse).orElse(null);
+        Policy policy = policyRepository.findById(id)
+                .orElseThrow(() -> new PolicyNotFoundException("Policy not found with id: " + id));
+        return toPolicyResponse(policy);
     }
 
     @Transactional
     public PolicyResponse submitForApproval(Long policyId) {
         Policy policy = policyRepository.findById(policyId)
-                .orElseThrow(() -> new ResourceNotFoundException(
+                .orElseThrow(() -> new PolicyNotFoundException(
                         "Policy not found with id: " + policyId));
 
         if (policy.getStatus() != PolicyStatus.DRAFT) {
-            throw new IllegalStateException(
+            throw new InvalidPolicyStateException(
                     "Only DRAFT policies can be submitted for approval");
         }
 
@@ -84,11 +86,11 @@ public class PolicyService {
     @Transactional
     public PolicyResponse approvePolicy(Long policyId) {
         Policy policy = policyRepository.findById(policyId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "policy not found with id: " + policyId));
+                .orElseThrow(() -> new PolicyNotFoundException(
+                        "Policy not found with id: " + policyId));
         if (policy.getStatus() != PolicyStatus.PENDING_APPROVAL) {
-            throw new IllegalStateException(
-                    "only policies in PENDING_APPROVAL status can be approved");
+            throw new InvalidPolicyStateException(
+                    "Only policies in PENDING_APPROVAL status can be approved");
         }
         policy.setStatus(PolicyStatus.APPROVED);
         Policy savedPolicy = policyRepository.save(policy);
@@ -99,11 +101,11 @@ public class PolicyService {
     @Transactional
     public PolicyResponse rejectPolicy(Long policyId) {
         Policy policy = policyRepository.findById(policyId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "policy not found with id: " + policyId));
+                .orElseThrow(() -> new PolicyNotFoundException(
+                        "Policy not found with id: " + policyId));
         if (policy.getStatus() != PolicyStatus.PENDING_APPROVAL) {
-            throw new IllegalStateException(
-                    "only policies in PENDING_APPROVAL status can be rejected");
+            throw new InvalidPolicyStateException(
+                    "Only policies in PENDING_APPROVAL status can be rejected");
         }
         policy.setStatus(PolicyStatus.REJECTED);
         Policy savedPolicy = policyRepository.save(policy);
@@ -120,7 +122,7 @@ public class PolicyService {
             event.setCreatedAt(LocalDateTime.now());
             outboxEventRepository.save(event);
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to serialize policy for outbox event", e);
+            throw new OutboxSerializationException("Failed to serialize policy for outbox event", e);
         }
     }
 }
