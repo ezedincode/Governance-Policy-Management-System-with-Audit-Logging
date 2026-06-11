@@ -6,6 +6,7 @@ import com.ezedin.Governance_Service.entity.Policy;
 import com.ezedin.Governance_Service.entity.PolicyStatus;
 import com.ezedin.Governance_Service.event.EventType;
 import com.ezedin.Governance_Service.event.OutboxEvent;
+import com.ezedin.Governance_Service.event.OutboxEventCreated;
 import com.ezedin.Governance_Service.exception.InvalidPolicyStateException;
 import com.ezedin.Governance_Service.exception.PolicyNotFoundException;
 import com.ezedin.Governance_Service.repository.PolicyRepository;
@@ -16,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -37,6 +39,9 @@ class PolicyServiceTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
+
     @InjectMocks
     private PolicyService policyService;
 
@@ -44,9 +49,18 @@ class PolicyServiceTest {
         when(objectMapper.writeValueAsString(any(Policy.class))).thenReturn("{\"id\":1}");
     }
 
+    private void stubOutboxSave() {
+        when(outboxEventRepository.save(any(OutboxEvent.class))).thenAnswer(invocation -> {
+            OutboxEvent event = invocation.getArgument(0);
+            event.setId(1L);
+            return event;
+        });
+    }
+
     @Test
     void shouldCreatePolicySuccessfully() throws Exception {
         stubObjectMapper();
+        stubOutboxSave();
 
         CreatePolicyRequest request = new CreatePolicyRequest();
         request.setTitle("Test policy");
@@ -70,6 +84,7 @@ class PolicyServiceTest {
         verify(outboxEventRepository).save(captor.capture());
         assertEquals(EventType.policy_created.name(), captor.getValue().getEventType());
         assertEquals("1", captor.getValue().getAggregateId());
+        verify(applicationEventPublisher).publishEvent(new OutboxEventCreated(1L));
     }
 
     @Test
@@ -112,6 +127,7 @@ class PolicyServiceTest {
     @Test
     void shouldSubmitDraftPolicyForApproval() throws Exception {
         stubObjectMapper();
+        stubOutboxSave();
 
         Policy policy = new Policy();
         policy.setId(1L);
@@ -171,6 +187,7 @@ class PolicyServiceTest {
     @Test
     void shouldApprovePendingPolicy() throws Exception {
         stubObjectMapper();
+        stubOutboxSave();
 
         Policy policy = new Policy();
         policy.setId(1L);
@@ -228,6 +245,7 @@ class PolicyServiceTest {
     @Test
     void shouldRejectPendingPolicy() throws Exception {
         stubObjectMapper();
+        stubOutboxSave();
 
         Policy policy = new Policy();
         policy.setId(1L);

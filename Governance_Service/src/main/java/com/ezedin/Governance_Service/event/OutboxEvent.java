@@ -23,5 +23,14 @@ public class OutboxEvent {
 
     private boolean processed = false;
 
+    private boolean failed = false;
+
+    private int retryCount = 0;
+
+    @Column(columnDefinition = "TEXT")
+    private String lastError;
+
     private LocalDateTime createdAt;
+
+    private LocalDateTime processedAt;
 }
