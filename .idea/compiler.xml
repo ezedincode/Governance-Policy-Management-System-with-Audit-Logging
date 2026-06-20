@@ -8,9 +8,17 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Discovery_Service" />
+        <module name="Gateway_Service" />
+      </profile>
+      <profile name="Annotation profile for parent" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath>
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+        </processorPath>
         <module name="Audit_Service" />
         <module name="Governance_Service" />
-        <module name="Gateway_Service" />
         <module name="User_Service" />
         <module name="Auth_Service" />
       </profile>

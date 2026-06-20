@@ -3,6 +3,7 @@ package com.ezedin.Auth_Service.service;
 import com.ezedin.Auth_Service.config.JwtProperties;
 import com.ezedin.Auth_Service.dto.*;
 import com.ezedin.Auth_Service.exception.InvalidCredentialsException;
+import com.ezedin.Auth_Service.exception.UserNotFoundException;
 import com.ezedin.Auth_Service.grpc.UserGrpcClient;
 import com.ezedin.Auth_Service.security.JwtService;
 import com.ezedin.grpc.user.UserGrpcResponse;
@@ -68,7 +69,7 @@ public class AuthService {
                     .role(user.getRole())
                     .password(user.getPassword())
                     .build();
-        } catch (StatusRuntimeException e) {
+        } catch (StatusRuntimeException | UserNotFoundException e) {
             throw new InvalidCredentialsException("Invalid username or password");
         }
     }

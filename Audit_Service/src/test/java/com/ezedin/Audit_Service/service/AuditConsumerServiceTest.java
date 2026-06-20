@@ -3,7 +3,6 @@ package com.ezedin.Audit_Service.service;
 import com.ezedin.Audit_Service.dto.GovernanceEvent;
 import com.ezedin.Audit_Service.entity.AuditLog;
 import com.ezedin.Audit_Service.entity.EventType;
-import com.ezedin.Audit_Service.repository.AuditRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -18,14 +17,13 @@ import static org.mockito.Mockito.*;
 class AuditConsumerServiceTest {
 
     @Mock
-    private AuditRepository auditLogRepository;
+    private AuditLogWriter auditLogWriter;
 
     @InjectMocks
     private AuditConsumerService auditConsumerService;
 
     @Test
     void shouldConsumeEventAndSaveAuditLog() {
-
         GovernanceEvent event = new GovernanceEvent();
         event.setEventType(EventType.policy_approved);
         event.setPolicyId(15L);
@@ -35,7 +33,7 @@ class AuditConsumerServiceTest {
         auditConsumerService.consume(event);
         ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
 
-        verify(auditLogRepository, times(1)).save(captor.capture());
+        verify(auditLogWriter, times(1)).save(captor.capture());
 
         AuditLog saved = captor.getValue();
 
@@ -45,10 +43,9 @@ class AuditConsumerServiceTest {
         assertEquals("manager", saved.getActor());
         assertEquals("2026-03-14T10:30:00", saved.getTimestamp());
     }
+
     @Test
     void shouldThrowOrHandleNullEventGracefully() {
         assertThrows(NullPointerException.class, () -> auditConsumerService.consume(null));
     }
-
-
 }

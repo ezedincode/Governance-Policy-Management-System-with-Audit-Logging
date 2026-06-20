@@ -10,14 +10,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
 import org.springframework.test.util.ReflectionTestUtils;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -30,7 +27,7 @@ class GovernanceEventProducerTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private KafkaTemplate<String, GovernanceEvent> kafkaTemplate;
+    private ResilientKafkaSender resilientKafkaSender;
 
     @Mock
     private outBoxEventRepository outboxEventRepository;
@@ -57,12 +54,10 @@ class GovernanceEventProducerTest {
 
         when(outboxEventRepository.findById(1L)).thenReturn(Optional.of(outboxEvent));
         when(objectMapper.readValue(outboxEvent.getPayload(), Policy.class)).thenReturn(policy);
-        when(kafkaTemplate.send(eq("governance-events"), eq("1"), any(GovernanceEvent.class)))
-                .thenReturn(CompletableFuture.completedFuture(mock(SendResult.class)));
 
         governanceEventProducer.onOutboxEventCreated(new OutboxEventCreated(1L));
 
-        verify(kafkaTemplate).send(eq("governance-events"), eq("1"), any(GovernanceEvent.class));
+        verify(resilientKafkaSender).send(eq("governance-events"), eq("1"), any(GovernanceEvent.class), eq(5000L));
         verify(outboxEventPublisher).markAsProcessed(1L);
         verify(outboxEventPublisher, never()).recordFailure(any(), any(), any());
     }
@@ -74,8 +69,9 @@ class GovernanceEventProducerTest {
 
         when(outboxEventRepository.findById(1L)).thenReturn(Optional.of(outboxEvent));
         when(objectMapper.readValue(outboxEvent.getPayload(), Policy.class)).thenReturn(policy);
-        when(kafkaTemplate.send(eq("governance-events"), eq("1"), any(GovernanceEvent.class)))
-                .thenReturn(CompletableFuture.failedFuture(new RuntimeException("Kafka unavailable")));
+        doThrow(new Exception("Kafka unavailable"))
+                .when(resilientKafkaSender)
+                .send(eq("governance-events"), eq("1"), any(GovernanceEvent.class), eq(5000L));
 
         governanceEventProducer.onOutboxEventCreated(new OutboxEventCreated(1L));
 

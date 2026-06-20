@@ -28,6 +28,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
     }
 
+    @ExceptionHandler(DatabaseUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleDatabaseUnavailable(DatabaseUnavailableException ex) {
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getFieldErrors().stream()

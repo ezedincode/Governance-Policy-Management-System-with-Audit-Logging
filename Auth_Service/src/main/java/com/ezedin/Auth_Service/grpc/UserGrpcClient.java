@@ -4,8 +4,10 @@ import com.ezedin.Auth_Service.dto.CreateUserRequest;
 import com.ezedin.Auth_Service.dto.CreateUserResponse;
 import com.ezedin.Auth_Service.exception.DuplicateEmailException;
 import com.ezedin.Auth_Service.exception.DuplicateUsernameException;
+import com.ezedin.Auth_Service.exception.UserNotFoundException;
 import com.ezedin.Auth_Service.exception.UserServiceException;
 import com.ezedin.grpc.user.*;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import net.devh.boot.grpc.client.inject.GrpcClient;
@@ -17,15 +19,23 @@ public class UserGrpcClient {
     @GrpcClient("user-service")
     private UserServiceGrpc.UserServiceBlockingStub userStub;
 
+    @CircuitBreaker(name = "user-service", fallbackMethod = "findByUsernameFallback")
     public UserGrpcResponse findByUsername(String username) {
-
         UserRequest request = UserRequest.newBuilder()
                 .setUsername(username)
                 .build();
 
-        return userStub.findByUsername(request);
+        try {
+            return userStub.findByUsername(request);
+        } catch (StatusRuntimeException ex) {
+            if (ex.getStatus().getCode() == Status.Code.NOT_FOUND) {
+                throw new UserNotFoundException("User not found: " + username, ex);
+            }
+            throw ex;
+        }
     }
 
+    @CircuitBreaker(name = "user-service", fallbackMethod = "createUserFallback")
     public CreateUserResponse createUser(CreateUserRequest request) {
         try {
             CreateUserGrpcRequest grpcRequest =
@@ -46,6 +56,23 @@ public class UserGrpcClient {
         } catch (StatusRuntimeException ex) {
             throw mapGrpcException(ex);
         }
+    }
+
+    private UserGrpcResponse findByUsernameFallback(String username, Throwable t) {
+        if (t instanceof UserNotFoundException) {
+            throw (UserNotFoundException) t;
+        }
+        throw new UserServiceException("User service is temporarily unavailable", t);
+    }
+
+    private CreateUserResponse createUserFallback(CreateUserRequest request, Throwable t) {
+        if (t instanceof DuplicateUsernameException) {
+            throw (DuplicateUsernameException) t;
+        }
+        if (t instanceof DuplicateEmailException) {
+            throw (DuplicateEmailException) t;
+        }
+        throw new UserServiceException("User service is temporarily unavailable", t);
     }
 
     private RuntimeException mapGrpcException(StatusRuntimeException ex) {

@@ -18,6 +18,10 @@ spring:
               predicates:
                 - Path=/auth/**
               filters:
+                - name: CircuitBreaker
+                  args:
+                    name: authServiceCB
+                    fallbackUri: forward:/fallback/auth
                 - name: RequestRateLimiter
                   args:
                     key-resolver: "#{@ipKeyResolver}"
@@ -29,6 +33,10 @@ spring:
               predicates:
                 - Path=/policies/**
               filters:
+                - name: CircuitBreaker
+                  args:
+                    name: governanceServiceCB
+                    fallbackUri: forward:/fallback/governance
                 - name: RequestRateLimiter
                   args:
                     key-resolver: "#{@ipKeyResolver}"
@@ -40,6 +48,10 @@ spring:
               predicates:
                 - Path=/swagger-ui/**,/v3/api-docs/**
               filters:
+                - name: CircuitBreaker
+                  args:
+                    name: governanceApiDocsCB
+                    fallbackUri: forward:/fallback/governance
                 - name: RequestRateLimiter
                   args:
                     key-resolver: "#{@ipKeyResolver}"
@@ -57,8 +69,28 @@ eureka:
   instance:
     prefer-ip-address: true
 
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+    instances:
+      authServiceCB:
+        base-config: default
+      governanceServiceCB:
+        base-config: default
+      governanceApiDocsCB:
+        base-config: default
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,gateway
+        include: health,gateway,circuitbreakers,circuitbreakerevents
+  health:
+    circuitbreakers:
+      enabled: true

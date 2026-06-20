@@ -1,5 +1,7 @@
 package com.ezedin.Auth_Service.exception;
 
+import com.ezedin.Auth_Service.exception.UserServiceException;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.grpc.StatusRuntimeException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +38,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserServiceException.class)
     public ResponseEntity<ErrorResponse> handleUserService(UserServiceException ex) {
         return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(CallNotPermittedException.class)
+    public ResponseEntity<ErrorResponse> handleCircuitOpen(CallNotPermittedException ex) {
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, "Service is temporarily unavailable. Please try again later.");
     }
 
     @ExceptionHandler(JwtException.class)

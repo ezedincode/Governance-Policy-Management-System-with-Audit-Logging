@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
@@ -15,7 +14,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +22,7 @@ public class GovernanceEventProducer {
     private static final Logger LOGGER = LoggerFactory.getLogger(GovernanceEventProducer.class);
 
     private final ObjectMapper objectMapper;
-    private final KafkaTemplate<String, GovernanceEvent> kafkaTemplate;
+    private final ResilientKafkaSender resilientKafkaSender;
     private final outBoxEventRepository outboxEventRepository;
     private final OutboxEventPublisher outboxEventPublisher;
     private final OutboxPublisherProperties properties;
@@ -52,8 +50,8 @@ public class GovernanceEventProducer {
         GovernanceEvent governanceEvent = null;
         try {
             governanceEvent = toGovernanceEvent(event);
-            kafkaTemplate.send(topic, event.getAggregateId(), governanceEvent)
-                    .get(properties.getKafkaSendTimeoutMs(), TimeUnit.MILLISECONDS);
+            resilientKafkaSender.send(topic, event.getAggregateId(), governanceEvent,
+                    properties.getKafkaSendTimeoutMs());
             outboxEventPublisher.markAsProcessed(event.getId());
         } catch (Exception ex) {
             LOGGER.error("Failed to publish outbox event id={}", event.getId(), ex);
