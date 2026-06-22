@@ -22,6 +22,17 @@ spring:
                   args:
                     name: authServiceCB
                     fallbackUri: forward:/fallback/auth
+                - name: Retry
+                  args:
+                    retries: 3
+                    series: ""
+                    methods: GET, POST
+                    exceptions: java.io.IOException, io.netty.channel.ConnectTimeoutException, org.springframework.cloud.gateway.support.TimeoutException
+                    backoff:
+                      firstBackoff: 50ms
+                      maxBackoff: 500ms
+                      factor: 2
+                      basedOnPreviousValue: false
                 - name: RequestRateLimiter
                   args:
                     key-resolver: "#{@ipKeyResolver}"
@@ -37,12 +48,51 @@ spring:
                   args:
                     name: governanceServiceCB
                     fallbackUri: forward:/fallback/governance
+                - name: Retry
+                  args:
+                    retries: 3
+                    series: ""
+                    methods: GET, POST
+                    exceptions: java.io.IOException, io.netty.channel.ConnectTimeoutException, org.springframework.cloud.gateway.support.TimeoutException
+                    backoff:
+                      firstBackoff: 50ms
+                      maxBackoff: 500ms
+                      factor: 2
+                      basedOnPreviousValue: false
                 - name: RequestRateLimiter
                   args:
                     key-resolver: "#{@ipKeyResolver}"
                     redis-rate-limiter.replenishRate: 20
                     redis-rate-limiter.burstCapacity: 40
                     redis-rate-limiter.requestedTokens: 1
+                - AuthenticationFilter
+            - id: audit-service
+              uri: lb://audit-service
+              predicates:
+                - Path=/audit/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: auditServiceCB
+                    fallbackUri: forward:/fallback/audit
+                - name: Retry
+                  args:
+                    retries: 3
+                    series: ""
+                    methods: GET, POST
+                    exceptions: java.io.IOException, io.netty.channel.ConnectTimeoutException, org.springframework.cloud.gateway.support.TimeoutException
+                    backoff:
+                      firstBackoff: 50ms
+                      maxBackoff: 500ms
+                      factor: 2
+                      basedOnPreviousValue: false
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@ipKeyResolver}"
+                    redis-rate-limiter.replenishRate: 10
+                    redis-rate-limiter.burstCapacity: 20
+                    redis-rate-limiter.requestedTokens: 1
+                - AuthenticationFilter
             - id: governance-api-docs
               uri: lb://governance-service
               predicates:
@@ -52,6 +102,17 @@ spring:
                   args:
                     name: governanceApiDocsCB
                     fallbackUri: forward:/fallback/governance
+                - name: Retry
+                  args:
+                    retries: 3
+                    series: ""
+                    methods: GET, POST
+                    exceptions: java.io.IOException, io.netty.channel.ConnectTimeoutException, org.springframework.cloud.gateway.support.TimeoutException
+                    backoff:
+                      firstBackoff: 50ms
+                      maxBackoff: 500ms
+                      factor: 2
+                      basedOnPreviousValue: false
                 - name: RequestRateLimiter
                   args:
                     key-resolver: "#{@ipKeyResolver}"
@@ -73,8 +134,8 @@ resilience4j:
   circuitbreaker:
     configs:
       default:
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
         permitted-number-of-calls-in-half-open-state: 3
@@ -85,6 +146,8 @@ resilience4j:
         base-config: default
       governanceApiDocsCB:
         base-config: default
+      auditServiceCB:
+        base-config: default
 
 management:
   endpoints:
@@ -94,3 +157,9 @@ management:
   health:
     circuitbreakers:
       enabled: true
+
+# Origins permitted to call the gateway cross-origin (Vite dev server by default).
+# Root-level key (NOT under spring:) so the spring.cloud.gateway routes tree stays intact.
+cors:
+  allowed-origins: http://localhost:5173
+

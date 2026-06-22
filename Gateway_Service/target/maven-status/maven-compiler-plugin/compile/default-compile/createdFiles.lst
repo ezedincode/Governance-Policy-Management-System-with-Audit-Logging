@@ -1,4 +1,7 @@
+com\ezedin\Gateway_Service\config\AuthenticationFilterGatewayFilterFactory.class
 com\ezedin\Gateway_Service\GatewayServiceApplication.class
+com\ezedin\Gateway_Service\config\CorsConfig.class
 com\ezedin\Gateway_Service\controller\FallbackController.class
-META-INF\spring-configuration-metadata.json
 com\ezedin\Gateway_Service\config\RateLimiterConfig.class
+com\ezedin\Gateway_Service\config\AuthenticationFilterGatewayFilterFactory$Config.class
+META-INF\spring-configuration-metadata.json

@@ -3,6 +3,7 @@ package com.ezedin.Gateway_Service.config;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -30,16 +31,14 @@ public class AuthenticationFilterGatewayFilterFactory extends AbstractGatewayFil
     }
 
     public static class Config {
-        // Configuration fields if needed
     }
 
+    @NotNull
     @Override
-    public GatewayFilter apply(Config config) {
+    public GatewayFilter apply(@NotNull Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
-
-            // Validate Authorization header presence
-            if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
+            if (request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION) == null) {
                 return onError(exchange, "No Authorization Header", HttpStatus.UNAUTHORIZED);
             }
 
@@ -51,14 +50,12 @@ public class AuthenticationFilterGatewayFilterFactory extends AbstractGatewayFil
             String token = authHeader.substring(7);
 
             try {
-                // Parse and validate the token using the same key construction logic as Auth Service
                 Claims claims = Jwts.parser()
                         .verifyWith(getSigningKey())
                         .build()
                         .parseSignedClaims(token)
                         .getPayload();
 
-                // Forward user identity claims to downstream microservices in headers
                 String username = claims.getSubject();
                 String role = claims.get("role", String.class);
 

@@ -36,7 +36,7 @@ public class UserService {
         return toUserResponse(findUserEntityByUsername(username));
     }
 
-    @CircuitBreaker(name = "user-database", fallbackMethod = "findUserEntityByUsernameFallback")
+    @CircuitBreaker(name = "user-database", fallbackMethod = " ")
     public User findUserEntityByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
